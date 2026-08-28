@@ -1,7 +1,10 @@
 const express = require("express");
-const { registerUser } = require("../controllers/authController");
-
 const router = express.Router();
+
+const {
+  registerUser,
+  loginUser,
+} = require("../controllers/authController");
 
 /**
  * @swagger
@@ -25,7 +28,7 @@ const router = express.Router();
  *                 example: Kesavan
  *               email:
  *                 type: string
- *                 example: kesavan@gmail.com
+ *                 example: test@gmail.com
  *               password:
  *                 type: string
  *                 example: 123456
@@ -38,5 +41,37 @@ const router = express.Router();
  *         description: Server error
  */
 router.post("/register", registerUser);
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *               password:
+ *                 type: string
+ *                 example: 123456
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid email or password
+ *       500:
+ *         description: Server error
+ */
+router.post("/login", loginUser);
 
 module.exports = router;
