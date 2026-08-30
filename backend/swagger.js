@@ -12,7 +12,7 @@ const options = {
 
     servers: [
       {
-        url: "http://localhost:5000",
+        url: "https://ecommerce-project-5ybb.onrender.com/",
       },
     ],
   },
