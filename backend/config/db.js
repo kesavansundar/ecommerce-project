@@ -1,21 +1,23 @@
-const mongoose = require("mongoose");
+const mysql=require('mysql2/promise');
 
-const connectDB = async () => {
-  try {
-    console.log(
-      "Mongo URI type:",
-      process.env.MONGO_URI?.startsWith("mongodb+srv://")
-        ? "ATLAS"
-        : "LOCAL/UNKNOWN"
-    );
+const pool = mysql.createPool({
+  host: process.env.DB_HOST ||  'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'ecommerce',
+  port: process.env.DB_PORT || 3306,
+});
 
-    await mongoose.connect(process.env.MONGO_URI);
+const connectDB = async () =>{
+  try{
+    const connection = await pool.getConnection();
 
-    console.log("MongoDB connected successfully");
-  } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
+    console.log("MySQL connected");
+
+    connection.release();
   }
-};
-
-module.exports = connectDB;
+  catch(error){
+    console.error("MySQL connection error:", error);
+  }
+}
+module.exports= {pool, connectDB};
