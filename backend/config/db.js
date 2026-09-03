@@ -1,5 +1,13 @@
 const mysql = require("mysql2/promise");
 
+console.log("DB CONFIG CHECK:", {
+  host: process.env.DB_HOST || "MISSING",
+  user: process.env.DB_USER || "MISSING",
+  database: process.env.DB_NAME || "MISSING",
+  port: process.env.DB_PORT || "MISSING",
+  password: process.env.DB_PASSWORD ? "SET" : "MISSING",
+});
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -16,7 +24,7 @@ const connectDB = async () => {
 
     connection.release();
   } catch (error) {
-    console.error("MySQL connection error:", error.message);
+    console.error("MySQL connection error FULL:", error);
   }
 };
 
