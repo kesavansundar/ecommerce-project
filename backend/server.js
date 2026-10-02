@@ -3,6 +3,7 @@ dotenv.config();
 
 const express = require("express");
 const cors = require("cors");
+
 const { connectDB } = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
@@ -10,21 +11,13 @@ const authRoutes = require("./routes/authRoutes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
 
-
-
 const app = express();
 
-const allowedOrigin =
-  "https://ecommerce-project-livid-eight.vercel.app";
-
-app.use(
-  cors({
-    origin: allowedOrigin,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 app.use(express.json());
 

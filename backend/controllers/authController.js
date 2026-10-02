@@ -1,22 +1,33 @@
-const User = require("../models/users");
+const { pool } = require("../config/db");
 const bcrypt = require("bcryptjs");
-const jwt= require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 
+// REGISTER
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "Please provide name, email and password",
       });
     }
 
-    // Check existing user
-    const existingUser = await User.findOne({ email });
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
 
-    if (existingUser) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check existing user
+    const [existingUsers] = await pool.query(
+      "SELECT id FROM users WHERE email = ? LIMIT 1",
+      [normalizedEmail]
+    );
+
+    if (existingUsers.length > 0) {
       return res.status(400).json({
         message: "User already exists",
       });
@@ -25,22 +36,23 @@ const registerUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    // Insert user
+    const [result] = await pool.query(
+      `INSERT INTO users (name, email, password, role)
+       VALUES (?, ?, ?, ?)`,
+      [name.trim(), normalizedEmail, hashedPassword, "user"]
+    );
 
     res.status(201).json({
       message: "User registered successfully",
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id: result.insertId,
+        name: name.trim(),
+        email: normalizedEmail,
+        role: "user",
       },
     });
+
   } catch (error) {
     console.error("Register error:", error.message);
 
@@ -50,25 +62,36 @@ const registerUser = async (req, res) => {
   }
 };
 
+
+// LOGIN
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check required fields
     if (!email || !password) {
       return res.status(400).json({
         message: "Please provide email and password",
       });
     }
 
-    // Find user
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
 
-    if (!user) {
+    // Find user
+    const [users] = await pool.query(
+      `SELECT id, name, email, password, role
+       FROM users
+       WHERE email = ?
+       LIMIT 1`,
+      [normalizedEmail]
+    );
+
+    if (users.length === 0) {
       return res.status(401).json({
         message: "Invalid email or password",
       });
     }
+
+    const user = users[0];
 
     // Compare password
     const isPasswordMatch = await bcrypt.compare(
@@ -82,10 +105,10 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Create JWT token
+    // Create JWT
     const token = jwt.sign(
       {
-        id: user._id,
+        id: user.id,
         email: user.email,
         role: user.role,
       },
@@ -99,7 +122,7 @@ const loginUser = async (req, res) => {
       message: "Login successful",
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -114,7 +137,9 @@ const loginUser = async (req, res) => {
     });
   }
 };
+
+
 module.exports = {
   registerUser,
-  loginUser
+  loginUser,
 };

@@ -14,6 +14,11 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: Number(process.env.DB_PORT || 3306),
+
+  // Aiven requires SSL
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 const connectDB = async () => {
